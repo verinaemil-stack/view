@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coupons App</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f4f6fb;
+}
+
+.header{
+  text-align:center;
+  padding:20px;
+}
+
+.header h1{
+  margin:0;
+  font-size:24px;
+}
+
+.header p{
+  color:#666;
+  font-size:13px;
+}
+
+.search{
+  max-width:520px;
+  margin:auto;
+  padding:0 10px;
+}
+
+.search input{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  outline:none;
+}
+
+.tabs{
+  max-width:520px;
+  margin:10px auto;
+  display:flex;
+  gap:10px;
+  padding:0 10px;
+}
+
+.tab{
+  flex:1;
+  padding:10px;
+  text-align:center;
+  border-radius:10px;
+  background:#eee;
+  cursor:pointer;
+  font-size:13px;
+}
+
+.tab.active{
+  background:#111;
+  color:#fff;
+}
+
+.container{
+  max-width:520px;
+  margin:auto;
+  padding:10px;
+}
+
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 8px 18px rgba(0,0,0,0.06);
+}
+
+.left{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+.code{
+  font-weight:bold;
+  background:linear-gradient(45deg,#ffb6c1,#d8b6ff);
+  padding:5px 10px;
+  border-radius:8px;
+  width:fit-content;
+}
+
+.brand{
+  font-size:12px;
+  color:#777;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+}
+
+button{
+  border:none;
+  padding:7px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.copy{
+  background:#111;
+  color:#fff;
+}
+
+.save{
+  background:#eee;
+}
+
+.save.active{
+  background:#1db954;
+  color:#fff;
+}
+
+.toast{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:black;
+  color:white;
+  padding:10px 15px;
+  border-radius:20px;
+  display:none;
+  font-size:13px;
+}
+</style>
+
+</head>
+<body>
+
+<div class="header">
+  <h1>🔥 Coupons App</h1>
+  <p>Search • Save • Copy</p>
+</div>
+
+<div class="search">
+  <input type="text" id="search" placeholder="Search coupons..." oninput="render()">
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="setTab('all')">All</div>
+  <div class="tab" onclick="setTab('saved')">Saved</div>
+</div>
+
+<div class="container" id="list"></div>
+
+<div class="toast" id="toast">Done ✔</div>
+
+<script>
+
+let tab="all";
+
+let coupons=[
+{code:"9VTQ",brand:"Vogacloset",link:"https://vogacloset.com"},
+{code:"ADL82",brand:"Mamas & Papas",link:"https://www.mamasandpapas.com"},
+{code:"ADL89",brand:"Styli",link:"https://www.styli.com"},
+{code:"ADX257",brand:"Noon",link:"https://www.noon.com"},
+{code:"D9XM",brand:"Bath & Body Works",link:"https://www.bathandbodyworks.com"},
+{code:"DF4F",brand:"H&M",link:"https://www.hm.com"},
+{code:"DN50",brand:"Metro Brazil",link:"https://www.metrobrazil.com"},
+{code:"MM91",brand:"Izil Beauty",link:"https://www.izilbeauty.com"}
+];
+
+function getSaved(){
+return JSON.parse(localStorage.getItem("saved")||"[]");
+}
+
+function saveItem(code){
+let saved=getSaved();
+if(saved.includes(code)){
+saved=saved.filter(c=>c!==code);
+}else{
+saved.push(code);
+}
+localStorage.setItem("saved",JSON.stringify(saved));
+render();
+}
+
+function setTab(t){
+tab=t;
+document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+event.target.classList.add("active");
+render();
+}
+
+function render(){
+let list=document.getElementById("list");
+let q=document.getElementById("search").value.toLowerCase();
+let saved=getSaved();
+
+let data=coupons.filter(c=>c.brand.toLowerCase().includes(q)||c.code.toLowerCase().includes(q));
+
+if(tab==="saved"){
+data=data.filter(c=>saved.includes(c.code));
+}
+
+list.innerHTML=data.map(c=>`
+<div class="card">
+  <div class="left">
+    <div class="code">${c.code}</div>
+    <div class="brand">${c.brand}</div>
+  </div>
+  <div class="actions">
+    <button class="copy" onclick="copyCode('${c.code}','${c.link}')">Copy</button>
+    <button class="save ${saved.includes(c.code)?'active':''}" onclick="saveItem('${c.code}')">
+      ${saved.includes(c.code)?"Saved":"Save"}
+    </button>
+  </div>
+</div>
+`).join("");
+}
+
+function copyCode(code,link){
+navigator.clipboard.writeText(code);
+window.open(link,"_blank");
+showToast("Copied ✔");
+}
+
+function showToast(text){
+let t=document.getElementById("toast");
+t.innerText=text;
+t.style.display="block";
+setTimeout(()=>t.style.display="none",1500);
+}
+
+render();
+</script>
+
+</body>
+</html>
